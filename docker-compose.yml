@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  localstack:
+    image: localstack/localstack-pro:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
+      - PERSISTENCE=1
+      - SERVICES=s3,sqs,lambda,sts,sagemaker,glue
+      - DEBUG=1
+    volumes:
+      - ./localstack_volume:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  postgres:
+    image: postgres:15
+    container_name: ev_postgres
+    environment:
+      - POSTGRES_USER=ev_user
+      - POSTGRES_PASSWORD=ev_pass
+      - POSTGRES_DB=ev_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  mlflow:
+    image: python:3.10-slim
+    container_name: mlflow
+    working_dir: /opt/mlflow
+    command: >
+      sh -c "pip install mlflow[extra] && \
+             mlflow server --backend-store-uri sqlite:///mlflow.db \
+                           --default-artifact-root /mlflow_artifacts \
+                           --host 0.0.0.0 --port 5000"
+    volumes:
+      - ./mlflow_artifacts:/mlflow_artifacts
+      - ./mlflow_db:/opt/mlflow
+    ports:
+      - "5000:5000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "472"
+    volumes:
+      - ./grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
