@@ -11,7 +11,8 @@ services:
       - SERVICES=s3,sqs,lambda,sts,sagemaker,glue
       - DEBUG=1
     volumes:
-      - ./localstack_volume:/var/lib/localstack
+      # IMPORTANT: use WSL absolute paths (not Windows paths)
+      - /home/zahr/localstack_volume:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
 
   postgres:
@@ -22,7 +23,7 @@ services:
       - POSTGRES_PASSWORD=ev_pass
       - POSTGRES_DB=ev_db
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - /home/zahr/postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -36,8 +37,8 @@ services:
                            --default-artifact-root /mlflow_artifacts \
                            --host 0.0.0.0 --port 5000"
     volumes:
-      - ./mlflow_artifacts:/mlflow_artifacts
-      - ./mlflow_db:/opt/mlflow
+      - /home/zahr/mlflow_artifacts:/mlflow_artifacts
+      - /home/zahr/mlflow_db:/opt/mlflow
     ports:
       - "5000:5000"
 
@@ -45,7 +46,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus:/etc/prometheus
+      - /home/zahr/prometheus:/etc/prometheus
     ports:
       - "9090:9090"
 
@@ -54,6 +55,6 @@ services:
     container_name: grafana
     user: "472"
     volumes:
-      - ./grafana:/var/lib/grafana
+      - /home/zahr/grafana:/var/lib/grafana
     ports:
       - "3000:3000"
