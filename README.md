@@ -8,42 +8,53 @@
 		docker compose -f .\docker-compose.yml up -d
 		```
 
-**Summary of Recent Changes**
+**Pipeline Scripts Overview**
 
-- **Notebook fix:** Updated the plotting cell in `notebooks/01_eda.ipynb` so month values are coerced to numeric (1–12), missing rows are dropped before plotting, and x-axis ticks are set to `1..12`. This ensures months appear in chronological order on the scatter plots.
-- **Validation:** The notebook JSON was validated after the edit to avoid corruption.
+The project includes a modular ML pipeline for processing EV charging data, performing feature engineering, and training time-series forecasting models. Scripts are located in `src/pipeline/`:
 
-**Useful Commands / Examples**
+1. **`ingest.py`** — Data ingestion & preprocessing
+   - Loads raw CSV data (semicolon-separated, European format with comma decimals)
+   - Parses datetime columns (`Start_plugin`, `End_plugout`)
+   - Saves cleaned data as Parquet (compressed with Snappy)
+   - Optionally uploads to LocalStack S3 (`s3://ev-data/parquets/ingest.parquet`)
+   
+   ```powershell
+   python .\src\pipeline\ingest.py --csv ".\data\downloaded\Dataset 2_Hourly EV loads - Per user.csv" --output .\data\raw --upload
+   ```
 
-- Run the ingest helper to convert a CSV to Parquet and optionally upload to S3 (LocalStack):
+2. **`features.py`** — Feature engineering & cleaning
+   - **Cleaning:** Standardizes column names, fixes missing `end_plugout`/`duration_hours` using median charging rate, corrects duration mismatches
+   - **Aggregation:** Groups sessions by hour, computes `total_kwh`, session counts, and averages
+   - **Feature engineering:**
+     - Lag features: `lag_1`, `lag_24`, `lag_168` (1h, 1d, 1w)
+     - Rolling statistics: 3h/6h/24h/168h rolling means & std
+     - Cyclical encoding: sine/cosine transforms for hour/day/month
+     - Temporal features: `hour_of_day`, `day_of_week`, `month`, `is_weekend`
+     - Expanding mean per (hour, day-of-week) combination
+   - Saves cleaned data to `data/clean/clean.parquet` and features to `data/features/features.parquet`
+   - Uploads features to S3
+   
+   ```powershell
+   python .\src\pipeline\features.py --input "s3://ev-data/parquets/ingest.parquet"
+   # or local: --input ".\data\raw\ingest.parquet"
+   ```
 
-	```powershell
-	python .\src\ingest\save_parquet.py --csv "./data/downloaded/Dataset 2_Hourly EV loads - Per user.csv" --output .\data\raw --upload
-	```
+3. **`train.py`** — Model training with MLflow logging
+   - Loads engineered features from Parquet (local or S3)
+   - Trains one of four models: Linear Regression (`lr`), Decision Tree (`dt`), XGBoost (`xgb`), LightGBM (`lgb`)
+   - Splits data using last 30 days (720 hours) as test set
+   - Logs metrics (MAE, RMSE) and model artifacts to MLflow
+   - Saves model locally (`src/models/`) and uploads to S3 (`s3://ev-data/artifacts/model/`)
+   
+   ```powershell
+   # Train LightGBM model
+   python .\src\pipeline\train.py --input ".\data\features\features.parquet" --model lgb --mlflow_uri http://localhost:5000
+   
+   # Train XGBoost
+   python .\src\pipeline\train.py --input "s3://ev-data/parquets/features.parquet" --model xgb
+   ```
 
-- Open and run the exploratory notebook (Jupyter Lab):
-
-	```powershell
-	jupyter lab
-	# then open `notebooks/01_eda.ipynb` in the browser and run the cells
-	```
-
-- Execute the notebook headlessly (useful for CI or automation):
-
-	```powershell
-	jupyter nbconvert --to notebook --execute notebooks/01_eda.ipynb --inplace
-	```
-
-**Notes & Tips**
-
-- If `month_plugin` is stored as a string (e.g. `'Jan'` or `'1'`), the notebook code will coerce it to numeric months; if you prefer month names on the x-axis I can update the cell to show `Jan..Dec` labels instead.
-- The ingest script uses LocalStack by default in the repo for S3-compatible testing — ensure the local stack is running (via Docker Compose) before using `--upload`.
-
-**Next steps (optional)**
-
-- Add a small README section describing how to run unit tests or the model training pipeline.
-- Add month-name tick labels or an aggregated monthly summary plot in `01_eda.ipynb`.
-
-If you want, I can also commit the notebook changes to a branch and push, or add month-name labels and a small aggregation overlay (median/mean per month).
-
-
+4. **`eval.py`** — Model evaluation *(placeholder for future implementation)*
+   - Will load trained models and evaluate on held-out test data
+   - Generate performance reports, prediction vs. actual plots, residual analysis
+   - Compare multiple models side-by-side
