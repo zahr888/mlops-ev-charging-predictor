@@ -1,0 +1,9 @@
+data:
+  raw_path: "s3://ev-data/parquets/ingest.parquet"
+  features_path: "s3://ev-data/parquets/features.parquet"
+  test_path: "s3://ev-data/parquets/test_features.parquet"
+
+models: ["lr", "dt", "xgb", "lgb"]
+
+paths:
+  model_output: "C:/Users/GIGABYTE/Documents/ml/mlops/src/models"

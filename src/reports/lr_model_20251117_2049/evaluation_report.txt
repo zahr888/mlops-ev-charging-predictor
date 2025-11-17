@@ -1,9 +1,9 @@
 Model Evaluation Report
 ========================
-Model: C:\Users\GIGABYTE\Documents\ml\mlops\src\models\lr_model_20251117_1608.joblib
+Model: C:\Users\GIGABYTE\Documents\ml\mlops\src\models\lr_model_20251117_2049.joblib
 Test Data: s3://ev-data/parquets/test_features.parquet
 
 Metrics:
   MAE:  23.4734
   RMSE: 33.8165
-  R²:   -0.0027
+  RÂ²:   -0.0027

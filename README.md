@@ -54,7 +54,32 @@ The project includes a modular ML pipeline for processing EV charging data, perf
    python .\src\pipeline\train.py --input "s3://ev-data/parquets/features.parquet" --model xgb
    ```
 
-4. **`eval.py`** — Model evaluation *(placeholder for future implementation)*
-   - Will load trained models and evaluate on held-out test data
-   - Generate performance reports, prediction vs. actual plots, residual analysis
-   - Compare multiple models side-by-side
+4. **`eval.py`** — Model evaluation & reporting
+   - Loads trained `.joblib` model and test data (local or S3)
+   - Generates predictions and computes metrics: MAE, RMSE, R²
+   - Creates visualizations:
+     - **Predictions vs Actuals** plot (time series comparison)
+     - **Residuals plot** (scatter plot of residuals vs predictions)
+   - Saves evaluation report as `evaluation_report.txt` in `src/reports/<model_name>/`
+   - Logs metrics to MLflow experiment `evaluations`
+   
+   ```powershell
+   python .\src\pipeline\eval.py --model ".\src\models\xgb_model_20251117_2050.joblib" --test-data ".\data\features\features.parquet"
+   
+   # Or from S3:
+   python .\src\pipeline\eval.py --model ".\src\models\lgb_model_20251117_2050.joblib" --test-data "s3://ev-data/parquets/features.parquet"
+   ```
+
+5. **`run_pipeline.py`** — End-to-end pipeline orchestrator
+   - Orchestrates the complete ML workflow from feature engineering to model evaluation
+   - Reads configuration from `config.yaml` (data paths, models to train)
+   - **Step 1:** Runs feature engineering (`features.py`)
+   - **Step 2:** Trains all configured models sequentially (`train.py` for each model)
+   - **Step 3:** Evaluates all trained models (`eval.py` for each)
+   - Handles UTF-8 encoding, provides progress logging, error handling
+   - Returns summary: models trained/evaluated counts
+   
+   ```powershell
+   cd .\src\pipeline
+   python run_pipeline.py
+   ```

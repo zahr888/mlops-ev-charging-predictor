@@ -62,4 +62,4 @@ if __name__ == "__main__":
         print("Uploading to S3...")
         upload_to_s3(output_path, args.bucket)
     
-    print("✅ Pipeline completed successfully!")
+    print("[OK] Pipeline completed successfully!")

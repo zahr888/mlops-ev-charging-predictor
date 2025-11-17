@@ -18,7 +18,7 @@ def save_locally(df, output_path, file_name):
                      engine='pyarrow', 
                      compression='snappy',
                      index=False)
-    print(f"✅ Cleaned data saved locally: {local_file_path}")
+    print(f"[OK] Cleaned data saved locally: {local_file_path}")
 
 def cleaning(df):
     # Standardize column names
@@ -76,7 +76,7 @@ def cleaning(df):
     for col in category_columns:
         df[col] = df[col].astype('category')
     df['end_plugout_hour'] = df['end_plugout_hour'].astype('int64')
-    print(df.dtypes)
+
 
     #verifying start_plugin_hour
     df['hour'] = df['start_plugin'].dt.hour
@@ -137,14 +137,6 @@ def engineering(df):
     expanding_means = expanding_means.reset_index(level=[0, 1], drop=True)
     hourly_total['hour_dow_mean'] = expanding_means
     hourly_total = hourly_total.dropna().copy()
-    print(hourly_total.columns)
-    print("============================")
-    print(hourly_total.shape)
-    print("============================")
-    print(hourly_total.dtypes)
-    print("============================")
-    print(hourly_total.isna().sum())
-    print("============================")
     save_locally(hourly_total, 'C:/Users/GIGABYTE/Documents/ml/mlops/data/features','features.parquet')
 
 def upload_to_s3(local_path, file_name, bucket='ev-data'):

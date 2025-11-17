@@ -1,0 +1,9 @@
+Model Evaluation Report
+========================
+Model: C:\Users\GIGABYTE\Documents\ml\mlops\src\models\lgb_model_20251117_2050.joblib
+Test Data: s3://ev-data/parquets/test_features.parquet
+
+Metrics:
+  MAE:  23.3134
+  RMSE: 33.7185
+  R²:   0.0031

@@ -1,4 +1,3 @@
-
 import os
 import argparse
 import pandas as pd
@@ -97,10 +96,10 @@ def main(args):
 if __name__ == "__main__":
     try:
         args = parse_args()
-        print("🚀 Starting training pipeline...")
+        print("[START] Starting training pipeline...")
         main(args)
-        print("✅ Training completed successfully!")
+        print("[OK] Training completed successfully!")
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"[ERROR] {e}")
         import traceback
         traceback.print_exc()
