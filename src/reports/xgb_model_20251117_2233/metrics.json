@@ -1,0 +1,7 @@
+{
+  "model_path": "C:\\Users\\GIGABYTE\\Documents\\ml\\mlops\\src\\models\\xgb_model_20251117_2233.joblib",
+  "test_data": "s3://ev-data/parquets/test_features.parquet",
+  "mae": 25.262163061778686,
+  "rmse": 34.82346574578273,
+  "r2": -0.06330498594020773
+}

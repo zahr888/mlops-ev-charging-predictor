@@ -111,6 +111,11 @@ def main():
     print(f"  - {evaluated} models evaluated")
     print("=" * 60)
 
+    # Update model registry with best model
+    print("\n[STEP 4] Updating model registry")
+    script_dir = Path(__file__).parent
+    run_command(["python", str(script_dir / "update_registry.py")])
+
 if __name__ == "__main__":
     try:
         main()

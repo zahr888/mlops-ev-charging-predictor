@@ -83,3 +83,10 @@ The project includes a modular ML pipeline for processing EV charging data, perf
    cd .\src\pipeline
    python run_pipeline.py
    ```
+
+## Note: MLflow → File/JSON Driven Pipeline
+
+MLflow was used during initial experimentation for tracking metrics and model artifacts. Moving forward, the pipeline is transitioning to a **file/JSON driven approach**:
+- Model metadata stored in `src/models/registry.json`
+- Evaluation metrics saved as JSON files in `src/reports/<model_name>/metrics.json`
+- This simplifies deployment and removes MLflow server dependency for production workflows

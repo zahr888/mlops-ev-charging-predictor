@@ -1,0 +1,7 @@
+{
+  "model_path": "C:\\Users\\GIGABYTE\\Documents\\ml\\mlops\\src\\models\\dt_model_20251117_2233.joblib",
+  "test_data": "s3://ev-data/parquets/test_features.parquet",
+  "mae": 22.903170968201298,
+  "rmse": 32.21950579632966,
+  "r2": 0.08976901129605064
+}

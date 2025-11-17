@@ -1,6 +1,6 @@
 Model Evaluation Report
 ========================
-Model: C:\Users\GIGABYTE\Documents\ml\mlops\src\models\dt_model_20251117_2049.joblib
+Model: C:\Users\GIGABYTE\Documents\ml\mlops\src\models\dt_model_20251117_2233.joblib
 Test Data: s3://ev-data/parquets/test_features.parquet
 
 Metrics:

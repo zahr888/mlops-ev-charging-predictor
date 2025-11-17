@@ -5,6 +5,7 @@ import joblib
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
 import mlflow
+import json
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,6 +51,14 @@ def main(args):
     print(f"  MAE:  {mae:.4f}")
     print(f"  RMSE: {rmse:.4f}")
     print(f"  R²:   {r2:.4f}")
+
+    metrics = {
+        "model_path": args.model,
+        "test_data": args.test_data,
+        "mae": float(mae),
+        "rmse": float(rmse),
+        "r2": float(r2),
+    }
 
     # Create output directory
     model_name = os.path.splitext(os.path.basename(args.model))[0]  
@@ -98,6 +107,13 @@ def main(args):
         f.write(f"  RMSE: {rmse:.4f}\n")
         f.write(f"  R²:   {r2:.4f}\n")
     print(f"Saved report: {report_path}")
+
+    # Save metrics to JSON for programmatic use
+    metrics_path = os.path.join(args.output_dir, "metrics.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=2)
+    print(f"Saved metrics: {metrics_path}")
+
 
     # Optional: Log metrics and artifacts to MLflow
     with mlflow.start_run(run_name=args.run):
