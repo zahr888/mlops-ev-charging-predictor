@@ -1,8 +1,3 @@
-"""
-features.py
-Script for processing raw data, performing feature engineering,
-and writing engineered features to disk or S3.
-"""
 
 import argparse
 import pandas as pd

@@ -1,12 +1,7 @@
-"""
-train.py
-Script for training ML models on engineered features,
-logging results to MLflow, and saving model artifacts.
-"""
+
 import os
 import argparse
 import pandas as pd
-import numpy as np
 import mlflow
 import mlflow.sklearn
 import joblib
@@ -26,7 +21,7 @@ def parse_args():
     parser.add_argument("--model", required=True, choices=["lr", "dt", "xgb", "lgb"], help="Which model to train")
     parser.add_argument("--output", default="C:\\Users\\GIGABYTE\\Documents\\ml\\mlops\\src\\models", help="Local model directory or S3 path")
     parser.add_argument("--mlflow_uri", default="http://localhost:5000", help="MLflow tracking URI")
-    parser.add_argument("--experiment", default="ev_baseline", help="MLflow experiment name")
+    parser.add_argument("--experiment", default="ev", help="MLflow experiment name")
     parser.add_argument("--bucket", default="ev-data", help="S3 bucket name for model artifacts")
 
     
