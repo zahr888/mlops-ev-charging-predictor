@@ -84,17 +84,31 @@ The project includes a modular ML pipeline for processing EV charging data, perf
    python run_pipeline.py
    ```
 
-## Note: MLflow → File/JSON Driven Pipeline
+---
 
-MLflow was used during initial experimentation for tracking metrics and model artifacts. Moving forward, the pipeline is transitioning to a **file/JSON driven approach**:
-- Model metadata stored in `src/models/registry.json`
-- Evaluation metrics saved as JSON files in `src/reports/<model_name>/metrics.json`
-- This simplifies deployment and removes MLflow server dependency for production workflows
+## Deployment & Inference
 
+### Real-Time API (FastAPI)
 
-# to pen the unicorne pote
+**`src/api/app.py`** — REST API for real-time predictions
+
+- **Framework:** FastAPI with Uvicorn ASGI server
+- **Endpoints:**
+  - `GET /health` — Health check endpoint
+  - `POST /predict` — Real-time prediction endpoint
+- **Model Loading:** Loads best model from `src/models/registry.json` on startup
+- **Request Format:** JSON with `instances` array containing feature dictionaries
+- **Response:** JSON with `predictions` array
+
+**Start the API server:**
+
+```powershell
 uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
-# the test json request 
+```
+
+**Test the prediction endpoint:**
+
+```powershell
 $body = @{
     instances = @(
         @{
@@ -125,11 +139,52 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-RestMethod -Uri "http://localhost:8000/predict" -Method POST -ContentType "application/json" -Body $body
+```
 
-# how the service works:
-Uvicorn:
-    Accepts HTTP requests on port 8000.
+**How it works:**
+1. Uvicorn accepts HTTP requests on port 8000
+2. FastAPI routes requests to appropriate endpoints (`/health`, `/predict`)
+3. The `/predict` endpoint loads features, runs model inference, returns predictions
 
-    Hands them to your FastAPI app.
+---
 
-    FastAPI routes them to the correct endpoint (/health, /predict), runs your Python code, and returns responses.
+### Batch Inference (AWS Lambda)
+
+**`src/aws/lambda_infer.py`** — Batch inference handler for AWS Lambda
+
+- **Trigger:** S3 event (new Parquet file uploaded to `s3://ev-data/raw/`)
+- **Process:**
+  1. Reads input features from S3 Parquet file
+  2. Loads trained model from `src/models/` (best model from registry)
+  3. Generates predictions for entire batch
+  4. Saves predictions as Parquet to `s3://ev-data/predictions/`
+- **Testing:** Manual invocation simulates S3 event for local testing
+
+**Upload input features to S3 (LocalStack):**
+
+```powershell
+awslocal s3 cp infer_input.parquet s3://ev-data/raw/infer_input.parquet
+```
+
+**Run batch inference locally (simulates Lambda):**
+
+```powershell
+python src/aws/lambda_infer.py
+```
+
+**Check output predictions:**
+
+```powershell
+awslocal s3 ls s3://ev-data/predictions/ --recursive
+```
+
+**Note:** In this iteration, Lambda logic is tested via manual invocation (simulated S3 event). For production, deploy to AWS Lambda with S3 trigger configuration.
+
+---
+
+## Note: MLflow → File/JSON Driven Pipeline
+
+MLflow was used during initial experimentation for tracking metrics and model artifacts. Moving forward, the pipeline is transitioning to a **file/JSON driven approach**:
+- Model metadata stored in `src/models/registry.json`
+- Evaluation metrics saved as JSON files in `src/reports/<model_name>/metrics.json`
+- This simplifies deployment and removes MLflow server dependency for production workflows
