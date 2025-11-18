@@ -57,3 +57,13 @@ services:
       - /home/zahr/grafana:/var/lib/grafana
     ports:
       - "3000:3000"
+  
+#  api:
+#    build: .
+#    container_name: ev-api
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      - localstack   # if you want localstack up too
+#    environment:
+#      - PYTHONUNBUFFERED=1

@@ -90,3 +90,46 @@ MLflow was used during initial experimentation for tracking metrics and model ar
 - Model metadata stored in `src/models/registry.json`
 - Evaluation metrics saved as JSON files in `src/reports/<model_name>/metrics.json`
 - This simplifies deployment and removes MLflow server dependency for production workflows
+
+
+# to pen the unicorne pote
+uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
+# the test json request 
+$body = @{
+    instances = @(
+        @{
+            n_sessions_lag1  = 5
+            avg_kwh_lag1     = 12.3
+            hour_of_day      = 10
+            day_of_week      = 2
+            month            = 5
+            hour_sin         = 0.5
+            hour_cos         = 0.8
+            dow_sin          = 0.3
+            dow_cos          = 0.95
+            month_sin        = 0.1
+            month_cos        = 0.99
+            lag_1            = 20.0
+            lag_24           = 18.0
+            lag_168          = 22.0
+            diff_lag1        = 1.0
+            roll_mean_3h     = 19.0
+            roll_mean_6h     = 18.5
+            roll_mean_24h    = 21.0
+            roll_std_24h     = 3.0
+            roll_mean_168h   = 20.5
+            hour_dow_mean    = 19.5
+            is_weekend       = 0
+        }
+    )
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:8000/predict" -Method POST -ContentType "application/json" -Body $body
+
+# how the service works:
+Uvicorn:
+    Accepts HTTP requests on port 8000.
+
+    Hands them to your FastAPI app.
+
+    FastAPI routes them to the correct endpoint (/health, /predict), runs your Python code, and returns responses.
