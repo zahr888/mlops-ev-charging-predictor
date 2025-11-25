@@ -10,3 +10,4 @@ pyarrow
 numpy
 boto3
 pytest
+httpx
