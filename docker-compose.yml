@@ -15,18 +15,6 @@ services:
       - /home/zahr/localstack_volume:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
 
-  postgres:
-    image: postgres:15
-    container_name: ev_postgres
-    environment:
-      - POSTGRES_USER=ev_user
-      - POSTGRES_PASSWORD=ev_pass
-      - POSTGRES_DB=ev_db
-    volumes:
-      - /home/zahr/postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
     container_name: mlflow
@@ -40,30 +28,39 @@ services:
     ports:
       - "5000:5000"
       
-  
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    # Ensure 'prometheus.yml' exists in your project root under a 'prometheus' folder
     volumes:
-      - /home/zahr/prometheus:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     user: "472"
     volumes:
-      - /home/zahr/grafana:/var/lib/grafana
+      - ./grafana_data:/var/lib/grafana
     ports:
       - "3000:3000"
-  
-#  api:
-#    build: .
-#    container_name: ev-api
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - localstack   # if you want localstack up too
-#    environment:
-#      - PYTHONUNBUFFERED=1
+    depends_on:
+      - prometheus
+
+  api:
+    build: .  
+    image: ev-api
+    container_name: ev-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - localstack 
+      - prometheus
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test

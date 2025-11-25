@@ -11,3 +11,4 @@ numpy
 boto3
 pytest
 httpx
+prometheus-fastapi-instrumentator

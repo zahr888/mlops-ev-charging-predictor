@@ -1,3 +1,4 @@
+import time
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
@@ -5,7 +6,22 @@ from pathlib import Path
 import json
 import joblib
 import pandas as pd
+from prometheus_fastapi_instrumentator import Instrumentator
 import os
+
+from prometheus_client import Counter, Histogram
+
+PREDICTION_COUNTER = Counter(
+    "ev_predictions_total",
+    "Number of prediction calls",
+    ["model_name"]
+)
+
+PREDICTION_LATENCY = Histogram(
+    "ev_prediction_latency_seconds",
+    "Time spent in prediction endpoint"
+)
+
 
 BASE_DIR = Path(__file__).resolve().parents[1]  # mlops/src
 MODELS_DIR = BASE_DIR / "models"
@@ -70,6 +86,8 @@ app = FastAPI(
     version="0.1.0",
     description="Serve hourly total_kwh predictions using the production model."
 )
+# Add Prometheus instrumentation
+Instrumentator().instrument(app).expose(app)
 
 class FeatureVector(BaseModel):
     n_sessions_lag1: float
@@ -112,9 +130,15 @@ def health():
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest):
+    start = time.time()
     df = pd.DataFrame([f.model_dump() for f in req.instances])
-    df = df[FEATURE_COLUMNS]   # enforce same columns & order as training
+    df = df[FEATURE_COLUMNS]
     preds = model.predict(df)
+    duration = time.time() - start
+
+    PREDICTION_COUNTER.labels(model_name=prod_info["model_name"]).inc()
+    PREDICTION_LATENCY.observe(duration)
+
     return PredictResponse(
         model_name=prod_info["model_name"],
         predictions=preds.tolist()
