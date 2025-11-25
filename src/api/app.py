@@ -42,16 +42,21 @@ FEATURE_COLUMNS = [
 def load_registry():
     with open(REGISTRY_PATH) as f:
         return json.load(f)
+    
 
 def load_production_model():
     registry = load_registry()
     prod = registry["production"]
-
-    model_filename = os.path.basename(prod["model_path"])
+    raw_path = prod["model_path"]
     
+    # Robust way to get filename from ANY path string (Windows or Linux)
+    # Split by \ first (Windows), then by / (Linux/Mac)
+    model_filename = raw_path.split("\\")[-1].split("/")[-1]
+    
+    # Construct the clean path
     model_path_in_container = (MODELS_DIR / model_filename).resolve()
     
-    print(f"Loading model from: {model_path_in_container}") # for debugging
+    print(f"Loading model from: {model_path_in_container}")
     
     model = joblib.load(model_path_in_container)
     return model, prod
