@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import joblib
 import pandas as pd
+import os
 
 BASE_DIR = Path(__file__).resolve().parents[1]  # mlops/src
 MODELS_DIR = BASE_DIR / "models"
@@ -45,12 +46,14 @@ def load_registry():
 def load_production_model():
     registry = load_registry()
     prod = registry["production"]
-    model_path = prod["model_path"]
-    # Make model_path absolute if it’s not
-    model_path = Path(model_path)
-    if not model_path.is_absolute():
-        model_path = (MODELS_DIR / model_path.name).resolve()
-    model = joblib.load(model_path)
+
+    model_filename = os.path.basename(prod["model_path"])
+    
+    model_path_in_container = (MODELS_DIR / model_filename).resolve()
+    
+    print(f"Loading model from: {model_path_in_container}") # for debugging
+    
+    model = joblib.load(model_path_in_container)
     return model, prod
 
 model, prod_info = load_production_model()

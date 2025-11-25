@@ -6,8 +6,6 @@ joblib
 scikit-learn
 xgboost
 lightgbm
-boto3
-mlflow
-matplotlib
 pyarrow
 numpy
+boto3
